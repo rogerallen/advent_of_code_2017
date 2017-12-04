@@ -1,5 +1,6 @@
 use std::env;
 use std::process;
+//use std::num;
 
 // ======================================================================
 // can you tell this is my first rust code?  :-)
@@ -15,6 +16,7 @@ fn main() {
     match day as &str {
         "1" => { day01(); }
         "2" => { day02(); }
+        "3" => { day03(); }
         _ => { usage(); }
     }
 }
@@ -216,4 +218,60 @@ fn div2val(row: &Vec<i32>) -> i32 {
         }
     }
     return -1;
+}
+
+// ======================================================================
+// Day 3
+// ======================================================================
+
+fn day03() {
+    println!("Day 3\n");
+
+    println!("Part One");
+
+    println!("Testing...");
+
+    // deals with spirals & I recall some code that I had done before via Tweet from John Carmack
+    for i in vec![1,2,3,4,5,6,7,8].iter() {
+        println!("dist({:?}) = {:?}",&i,spiral_xy(&i));
+    }
+    let test_inputs = vec![ 1, 12, 23, 1024];
+    let test_answers = vec![ 0, 3, 2, 31];
+    for (i,s) in test_inputs.iter().enumerate() {
+        let a = manhattan_spiral_distance(&s);
+        let a_correct = test_answers[i];
+        print!("  manhattan_spiral_distance({:?}) == {:?}",&s,&a);
+        if a != a_correct {
+            println!(" FAIL");
+        } else {
+            println!("");
+        }
+    }
+
+}
+
+// http://www.actionscript.org/forums/showpost.php3?s=c68c3e3a7b9bfed76d971fe7658dd3b5&p=915318&postcount=7
+// Source for this formula is:
+// "Concrete Mathematics - a foundation for computer science 2nd Edition" by Graham, Knuth, and Patashnik, page 99
+// n = the tile in the order list
+// m = floor( sqrt(n) )
+// x(n) = -1^(m+1) [ (n - m(m+1)) * [floor(2*sqrt(n)) is even] + ceil(m / 2) ]
+// y(n) = -1^(m+1) [ (n - m(m+1)) * [floor(2*sqrt(n)) is odd] - ceil(m / 2) ]
+fn spiral_xy(n0: &i32) -> (i32, i32) {
+    let n = n0 - 1;
+    let m = (n as f64).sqrt().floor() as i32;
+    println!("m {:?}",&m);
+    let fsn = (2.0*(n as f64)).sqrt().floor() as i32;
+    let fsn_is_even = 1-(fsn % 2);
+    let fsn_is_odd = fsn % 2;
+    println!("e {:?} o {:?}",&fsn_is_even, &fsn_is_odd);
+    let x = (-1 as i32).pow((m) as u32)*( ((n - m*(m+1)) * fsn_is_even) + ((m as f32 / 2.0).ceil() as i32) );
+    let y = (-1 as i32).pow((m) as u32)*( ((n - m*(m+1)) * fsn_is_odd)  - ((m as f32 / 2.0).ceil() as i32) );
+    return (x, y);
+}
+
+fn manhattan_spiral_distance(n0: &i32) -> i32 {
+    let (x,y) = spiral_xy(&n0);
+    println!("{:?} -> {:?},{:?}",n0,&x,&y);
+    return x.abs()+y.abs();
 }
