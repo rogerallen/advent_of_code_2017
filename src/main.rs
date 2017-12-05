@@ -1,5 +1,6 @@
 use std::env;
 use std::process;
+//use std::iter;
 //use std::num;
 
 // ======================================================================
@@ -223,6 +224,14 @@ fn div2val(row: &Vec<i32>) -> i32 {
 // ======================================================================
 // Day 3
 // ======================================================================
+const GRID_SIZE: i32 = 26; // be even
+const GRID_SIZE2: i32 = GRID_SIZE * GRID_SIZE;
+fn grid_index(x: &i32, y: &i32) -> usize {
+    return (y*GRID_SIZE + x) as usize;
+}
+fn grid_centered_index(x: &i32, y: &i32) -> usize {
+    return grid_index(&(GRID_SIZE/2+x),&(GRID_SIZE/2+y));
+}
 
 fn day03() {
     println!("Day 3\n");
@@ -231,7 +240,6 @@ fn day03() {
 
     println!("Testing...");
 
-    // deals with spirals & I recall some code that I had done before via Tweet from John Carmack
     for i in vec![1,2,3,4,5,6,7,8].iter() {
         println!("dist({:?}) = {:?}",&i,spiral_xy(&i));
     }
@@ -248,8 +256,43 @@ fn day03() {
         }
     }
 
+    println!("Solution...");
+    let test_input = 265149;
+    println!("  answer = {:?}",manhattan_spiral_distance(&test_input));
+
+
+    println!("Part Two");
+
+    println!("Testing...");
+    // array of SIZE x SIZE initialized to 0
+    let mut my_grid: [i32; GRID_SIZE2 as usize] = [0; GRID_SIZE2 as usize];
+    my_grid[grid_centered_index(&0,&0)] = 1;
+    for i in 2..24 {
+        let (x,y) = spiral_xy(&i);
+        my_grid[grid_centered_index(&x,&y)] = neighbor_sum(&my_grid,&(GRID_SIZE/2+x),&(GRID_SIZE/2+y));
+    }
+    for y in (10..17).rev() {
+        for x in 10..17 {
+            print!("{:5} ",&my_grid[grid_index(&x,&y)]);
+        }
+        println!("");
+    }
+
+    println!("Solution...");
+    let mut my_grid: [i32; GRID_SIZE2 as usize] = [0; GRID_SIZE2 as usize];
+    my_grid[grid_centered_index(&0,&0)] = 1;
+    for i in 2..GRID_SIZE2/2 {
+        let (x,y) = spiral_xy(&i);
+        let val = neighbor_sum(&my_grid,&(GRID_SIZE/2+x),&(GRID_SIZE/2+y));
+        my_grid[grid_centered_index(&x,&y)] = val;
+        if val > 265149 {
+            println!("wrote value={} on square={}",&val,&i);
+            return;
+        }
+    }
 }
 
+// deals with spirals & I recall some code that I had done before via Tweet from John Carmack
 // http://www.actionscript.org/forums/showpost.php3?s=c68c3e3a7b9bfed76d971fe7658dd3b5&p=915318&postcount=7
 // Source for this formula is:
 // "Concrete Mathematics - a foundation for computer science 2nd Edition" by Graham, Knuth, and Patashnik, page 99
@@ -257,16 +300,16 @@ fn day03() {
 // m = floor( sqrt(n) )
 // x(n) = -1^(m+1) [ (n - m(m+1)) * [floor(2*sqrt(n)) is even] + ceil(m / 2) ]
 // y(n) = -1^(m+1) [ (n - m(m+1)) * [floor(2*sqrt(n)) is odd] - ceil(m / 2) ]
+// Formula adjusted below (I 'cheated' a bit and played with python to figure this out)
 fn spiral_xy(n0: &i32) -> (i32, i32) {
     let n = n0 - 1;
     let m = (n as f64).sqrt().floor() as i32;
-    println!("m {:?}",&m);
-    let fsn = (2.0*(n as f64)).sqrt().floor() as i32;
+    let fsn = (2.0*(n as f64).sqrt()).floor() as i32;
     let fsn_is_even = 1-(fsn % 2);
     let fsn_is_odd = fsn % 2;
-    println!("e {:?} o {:?}",&fsn_is_even, &fsn_is_odd);
-    let x = (-1 as i32).pow((m) as u32)*( ((n - m*(m+1)) * fsn_is_even) + ((m as f32 / 2.0).ceil() as i32) );
-    let y = (-1 as i32).pow((m) as u32)*( ((n - m*(m+1)) * fsn_is_odd)  - ((m as f32 / 2.0).ceil() as i32) );
+    let x = (-1 as i32).pow((m) as u32) * ( ((n - m*(m+1)) * fsn_is_odd)  - ((m as f32 / 2.0).ceil() as i32) );
+    let y = (-1 as i32).pow((m+1) as u32) * ( ((n - m*(m+1)) * fsn_is_even) + ((m as f32 / 2.0).ceil() as i32) );
+    //println!("{} {} {} {} {} {} {}",&n,&m,&fsn,&fsn_is_even,&fsn_is_odd,&x,&y);
     return (x, y);
 }
 
@@ -274,4 +317,11 @@ fn manhattan_spiral_distance(n0: &i32) -> i32 {
     let (x,y) = spiral_xy(&n0);
     println!("{:?} -> {:?},{:?}",n0,&x,&y);
     return x.abs()+y.abs();
+}
+
+fn neighbor_sum(grid: &[i32], x: &i32, y: &i32) -> i32 {
+    // just never go out of range okay?  :-)
+    return grid[grid_index(&(x-1),&(y-1))] + grid[grid_index(&x,&(y-1))] + grid[grid_index(&(x+1),&(y-1))] +
+        grid[grid_index(&(x-1),&y)] + grid[grid_index(&(x+1),&y)] +
+        grid[grid_index(&(x-1),&(y+1))] + grid[grid_index(&x,&(y+1))] + grid[grid_index(&(x+1),&(y+1))];
 }
