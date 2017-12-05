@@ -1,5 +1,9 @@
 use std::env;
 use std::process;
+use std::collections::HashSet;
+use std::io::prelude::*;
+use std::io::BufReader;
+use std::fs::File;
 //use std::iter;
 //use std::num;
 
@@ -343,14 +347,103 @@ fn day04() {
     println!("Part One");
 
     println!("Testing...");
+    let test_strings = vec![ "aa bb cc dd ee", "aa bb cc dd aa", "aa bb cc dd aaa"];
+    let test_answers = vec![             true,            false,             true];
+    for (i,s) in test_strings.iter().enumerate() {
+        let a = valid_passphrase(&s);
+        let a_correct = test_answers[i];
+        print!("  valid?({:?}) == {:?}",&s,&a);
+        if a != a_correct {
+            println!(" FAIL");
+        } else {
+            println!("");
+        }
+    }
 
     println!("Solution...");
+    let file = File::open("day4_input.txt").expect("no such file");
+    let buf = BufReader::new(file);
+    let mut num_valid_passphrases = 0;
+    let mut num_invalid_passphrases = 0;
+    for line in buf.lines() {
+        if valid_passphrase(&line.unwrap()) {
+            num_valid_passphrases += 1;
+        } else {
+            num_invalid_passphrases += 1;
+        }
+    }
+    println!("  {} valid {} invalid passphrases",num_valid_passphrases, num_invalid_passphrases);
 
     println!("\nPart Two");
 
     println!("Testing...");
+    let test_strings = vec![ "abcde fghij", "abcde xyz ecdab", "a ab abc abd abf abj",
+                              "iiii oiii ooii oooi oooo", "oiii ioii iioi iiio"];
+    let test_answers = vec![ true, false, true, true, false];
+    for (i,s) in test_strings.iter().enumerate() {
+        let a = new_valid_passphrase(&s);
+        let a_correct = test_answers[i];
+        print!("  valid?({:?}) == {:?}",&s,&a);
+        if a != a_correct {
+            println!(" FAIL");
+        } else {
+            println!("");
+        }
+    }
 
     println!("Solution...");
+    let file = File::open("day4_input.txt").expect("no such file");
+    let buf = BufReader::new(file);
+    let mut num_valid_passphrases = 0;
+    let mut num_invalid_passphrases = 0;
+    for line in buf.lines() {
+        if new_valid_passphrase(&line.unwrap()) {
+            num_valid_passphrases += 1;
+        } else {
+            num_invalid_passphrases += 1;
+        }
+    }
+    println!("  {} valid {} invalid passphrases",num_valid_passphrases, num_invalid_passphrases);
+}
+
+fn valid_passphrase(phrase: &str) -> bool {
+    let split = phrase.split(" ");
+    let mut words = HashSet::new();
+    for s in split {
+        if words.contains(s) {
+            return false;
+        }
+        words.insert(s);
+    }
+    if words.len() == 1 {
+        return false;
+    }
+    return true;
+}
+
+fn new_valid_passphrase(phrase: &str) -> bool {
+    let split = phrase.split(" ");
+    let mut words = HashSet::new();
+    let mut sorted_words = HashSet::new();
+    for s in split {
+        if words.contains(s) {
+            return false;
+        }
+        words.insert(s);
+        let mut sorted_chars: Vec<char> = s.chars().collect();
+        sorted_chars.sort();
+        if sorted_words.contains(&sorted_chars) {
+            return false;
+        }
+        sorted_words.insert(sorted_chars);
+    }
+    if words.len() == 1 {
+        return false;
+    }
+    if sorted_words.len() == 1 {
+        return false;
+    }
+    return true;
 }
 
 // ======================================================================
