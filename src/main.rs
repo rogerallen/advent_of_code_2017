@@ -546,14 +546,68 @@ fn day06() {
     println!("Part One");
 
     println!("Testing...");
+    let mut test_inputs = vec![ 0, 2, 7, 0];
+    let steps = sim_mem_alloc(&mut test_inputs);
+    print!("  steps = {:?}",&steps);
+    if steps != 5 {
+        println!(" FAIL");
+    } else {
+        println!("");
+    }
 
     println!("Solution...");
+    let mut test_inputs = vec![10, 3, 15, 10, 5, 15, 5, 15, 9, 2, 5, 8, 5, 2, 3, 6];
+    let steps = sim_mem_alloc(&mut test_inputs);
+    print!("  steps = {:?}",&steps);
 
     println!("\nPart Two");
 
     println!("Testing...");
 
     println!("Solution...");
+}
+
+fn sim_mem_alloc(block_state: &mut Vec<i32>) -> i32 {
+    let mut block_states = HashSet::new();
+    let mut steps = 0;
+    //println!("steps {} state {:?}",steps,block_state);
+    while !block_states.contains(block_state) {
+        block_states.insert(block_state.clone());
+        realloc_blocks(block_state);
+        steps += 1;
+        //println!("steps {} state {:?}",steps,block_state);
+    }
+    return steps;
+}
+
+fn realloc_blocks(block_state: &mut Vec<i32>) {
+    let max_index = max_index(block_state);
+    let mut cur_index = (max_index + 1) % block_state.len() as i32;
+    let mut blocks = block_state[max_index as usize];
+    block_state[max_index as usize] = 0;
+    while blocks > 0 {
+        block_state[cur_index as usize] += 1;
+        blocks -= 1;
+        cur_index = (cur_index + 1) % block_state.len() as i32;
+    }
+}
+
+fn max_index(v: &Vec<i32>) -> i32 {
+    // find max index & return smallest if multiple matches
+    // (stdlib finds last value)
+    // not the greatest code.  FIXME
+    let mx = v.iter().max();
+    match mx {
+        None => { println!{"unhandled error!"}; return -1; }
+        Some(mx) => {
+            // now find index with that value
+            let mxi = v.iter().position(|&x| x == *mx);
+            match mxi {
+                None => { println!{"unhandled error!"}; return -1; }
+                Some(mxi) => {return mxi as i32;}
+            }
+        }
+    }
 }
 
 // ======================================================================
