@@ -456,14 +456,84 @@ fn day05() {
     println!("Part One");
 
     println!("Testing...");
+    let mut test_inputs = vec![ 0, 3, 0, 1, -3];
+    let steps = sim_cpu_jumps(&mut test_inputs);
+    print!("  steps = {:?}",&steps);
+    if steps != 5 {
+        println!(" FAIL");
+    } else {
+        println!("");
+    }
 
     println!("Solution...");
+    let file = File::open("day5_input.txt").expect("no such file");
+    let buf = BufReader::new(file);
+    let mut test_inputs = Vec::new();
+    for line in buf.lines() {
+        let val = line.unwrap().parse::<i32>().unwrap();
+        test_inputs.push(val);
+    }
+    //println!("{:?}",test_input);
+    let steps = sim_cpu_jumps(&mut test_inputs);
+    print!("  steps = {:?}",&steps);
 
     println!("\nPart Two");
 
     println!("Testing...");
+    let mut test_inputs = vec![ 0, 3, 0, 1, -3];
+    let steps = sim_cpu_jumps2(&mut test_inputs);
+    println!("  steps = {:?}",&steps);
+    if steps != 10 {
+        println!(" FAIL");
+    } else {
+        println!("");
+    }
 
     println!("Solution...");
+    let file = File::open("day5_input.txt").expect("no such file");
+    let buf = BufReader::new(file);
+    let mut test_inputs = Vec::new();
+    for line in buf.lines() {
+        let val = line.unwrap().parse::<i32>().unwrap();
+        test_inputs.push(val);
+    }
+    //println!("{:?}",test_input);
+    let steps = sim_cpu_jumps2(&mut test_inputs);
+    println!("  steps = {:?}",&steps);
+}
+
+fn sim_cpu_jumps(jumps: &mut Vec<i32>) -> i32 {
+    let mut addr = 0 as i32;
+    let mut steps = 0;
+    while addr >=0 && addr < jumps.len() as i32 {
+        let jump = jumps[addr as usize];
+        let next_addr = addr + jump;
+        jumps[addr as usize] += 1;
+        addr = next_addr;
+        steps += 1;
+        //println!("steps {} addr {}",steps,addr);
+        //println!("steps {} addr {} jumps {:?}",steps,addr,jumps);
+    }
+    return steps;
+}
+
+fn sim_cpu_jumps2(jumps: &mut Vec<i32>) -> i32 {
+    let mut addr = 0 as i32;
+    let mut steps = 0;
+    while addr >=0 && addr < jumps.len() as i32 {
+        let jump = jumps[addr as usize];
+        let next_addr = addr + jump;
+        let mut update = 1;
+        if jump >= 3 {
+            update = -1;
+        }
+        jumps[addr as usize] += update;
+        addr = next_addr;
+        steps += 1;
+        //println!("steps {} addr {}",steps,addr);
+        //println!("steps {} addr {} jumps {:?}",steps,addr,jumps);
+    }
+    return steps;
 }
 
 // ======================================================================
