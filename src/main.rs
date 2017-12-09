@@ -1,6 +1,7 @@
 use std::env;
 use std::process;
 use std::collections::HashSet;
+use std::collections::HashMap;
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::File;
@@ -558,13 +559,26 @@ fn day06() {
     println!("Solution...");
     let mut test_inputs = vec![10, 3, 15, 10, 5, 15, 5, 15, 9, 2, 5, 8, 5, 2, 3, 6];
     let steps = sim_mem_alloc(&mut test_inputs);
-    print!("  steps = {:?}",&steps);
+    println!("  steps = {:?}",&steps);
 
     println!("\nPart Two");
 
     println!("Testing...");
+    let mut test_inputs = vec![ 0, 2, 7, 0];
+    let (steps,repeat_steps) = sim_mem_alloc2(&mut test_inputs);
+    println!("  steps = {:?} repeat_steps = {:?}",&steps,&repeat_steps);
+    if steps != 5 {
+        println!(" FAIL");
+    } else if repeat_steps != 4 {
+        println!(" FAIL");
+    } else {
+        println!("");
+    }
 
     println!("Solution...");
+    let mut test_inputs = vec![10, 3, 15, 10, 5, 15, 5, 15, 9, 2, 5, 8, 5, 2, 3, 6];
+    let (steps,repeat_steps) = sim_mem_alloc2(&mut test_inputs);
+    println!("  steps = {:?} repeat_steps = {:?}",&steps,&repeat_steps);
 }
 
 fn sim_mem_alloc(block_state: &mut Vec<i32>) -> i32 {
@@ -578,6 +592,26 @@ fn sim_mem_alloc(block_state: &mut Vec<i32>) -> i32 {
         //println!("steps {} state {:?}",steps,block_state);
     }
     return steps;
+}
+
+fn sim_mem_alloc2(block_state: &mut Vec<i32>) -> (i32,i32) {
+    let mut block_states = HashSet::new();
+    let mut block_state_step = HashMap::new();
+    let mut steps = 0;
+    //println!("steps {} state {:?}",steps,block_state);
+    while !block_states.contains(block_state) {
+        block_states.insert(block_state.clone());
+        block_state_step.insert(format!("{:?}",block_state),steps);
+        realloc_blocks(block_state);
+        steps += 1;
+        //println!("steps {} state {:?}",steps,block_state);
+    }
+    let last_step = block_state_step[&format!("{:?}",block_state)];
+    //match last_step {
+    //    None => { println!("unhandled error!"); return (steps,-1); }
+    //    Some(x) => { return (steps,steps-*x); }
+    //}
+    return (steps,steps-last_step);
 }
 
 fn realloc_blocks(block_state: &mut Vec<i32>) {
@@ -598,12 +632,12 @@ fn max_index(v: &Vec<i32>) -> i32 {
     // not the greatest code.  FIXME
     let mx = v.iter().max();
     match mx {
-        None => { println!{"unhandled error!"}; return -1; }
+        None => { println!("unhandled error!"); return -1; }
         Some(mx) => {
             // now find index with that value
             let mxi = v.iter().position(|&x| x == *mx);
             match mxi {
-                None => { println!{"unhandled error!"}; return -1; }
+                None => { println!("unhandled error!"); return -1; }
                 Some(mxi) => {return mxi as i32;}
             }
         }
